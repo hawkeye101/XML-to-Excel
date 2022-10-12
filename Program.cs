@@ -17,12 +17,12 @@ namespace XMLToExcel
             var listInput = input.ToList();
             var output = new List<string>();
             string elt = "";
-            //var rowGroup = false;
+            var rowGroup = false;
             for (int i = 0; i < listInput.Count; i++)
             {
                 var line = listInput[i];
                 elt += (line + "\n");
-                if (line == tokens[0])
+                if (line.Contains(tokens[0]))
                 {
                     for (int j = 0; j < tokens.Count; j++)
                     {
@@ -31,9 +31,9 @@ namespace XMLToExcel
                         {
                             if (j + 1 < tokens.Count)
                             {
-                                //if (listInput[i].Contains("</Row>") && listInput[i + 1].Contains("</RowGroup>"))
-                                //    rowGroup = true;
-                                if (listInput[i + 1] != tokens[j + 1])
+                                if (listInput[i].Contains("</Row>") && listInput[i + 1].Contains("</RowGroup>"))
+                                    rowGroup = true;
+                                if (listInput[i + 1].Contains(tokens[j + 1]))
                                 {
                                     output.Add(elt);
                                     elt = "";
@@ -41,7 +41,7 @@ namespace XMLToExcel
                                 else
                                 {
                                     line = listInput[++i];
-                                    elt += (line + "\n");                                        
+                                    elt += (line + "\n");                                    
                                     if (i == listInput.Count - 1)
                                     {
                                         output.Add(elt);
@@ -52,8 +52,14 @@ namespace XMLToExcel
                             }
                             else
                             {
-                                if (line == token)
+                                if (line.Contains(token))
                                 {
+                                    output.Add(elt);
+                                    elt = "";
+                                }
+                                else if (rowGroup && listInput[i + 1].Contains(token))
+                                {
+                                    elt += listInput[++i];
                                     output.Add(elt);
                                     elt = "";
                                 }
@@ -73,11 +79,11 @@ namespace XMLToExcel
         static void Main(string[] args)
         {
             Console.WriteLine();
-            var outputFile = @"D:\Svatantra\SheetKraftWeb\Templates\LiabilityMaturity.xls";
+            var outputFile = @"D:\Svatantra\SheetKraftWeb\Templates\liabilityMonthlyAccruedInterest.xls";
             var characterCount = 25000;
-            var inputFile = @"C:\Users\QP2020\Downloads\liabilityMaturity.xml";
+            var inputFile = @"C:\Users\QP2020\Downloads\COF.xml";
             string[] lines = File.ReadAllLines(inputFile);
-            var groupedLines = CombineBasedOnString(lines, new List<string> { "\t\t\t\t</Row>", "\t\t\t</Table>", "\t\t</TableRow>", "\t</Worksheet>", "</Workbook>" });
+            var groupedLines = CombineBasedOnString(lines, new List<string> { "</Row>", "</Table>", "</TableRow>", "</Worksheet>", "</Workbook>" });
 
             HSSFWorkbook hssfwb;
             using (FileStream file = new FileStream(outputFile, FileMode.Open, FileAccess.Read))
